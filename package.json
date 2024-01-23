@@ -2,13 +2,20 @@
   "name": "video-streaming-app",
   "version": "1.0.0",
   "description": "full stack project for video streaming",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/index.js"
   },
   "keywords": [
-    "start"
+    "javascript",
+    "node",
+    "express",
+    "backend"
   ],
   "author": "Yashwanth B M",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
 }
