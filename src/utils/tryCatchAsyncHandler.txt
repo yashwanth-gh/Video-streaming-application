@@ -1,0 +1,21 @@
+/*
+this is prtry catch  based async handler for promise base async handler: go here -> './asyncHandler.js' 
+*/
+
+
+// const asyncHandler = (fn) => async (req, res, next) => {
+//     try {
+//         await fn(req, res, next)
+//     } catch (error) {
+//         res.status(err.code || 500).json({
+//             success: false,
+//             message: err.message
+//         })
+//     }
+// }
+
+
+
+// const asyncHandler = () => {}
+// const asyncHandler = (func) => {async() => {}}
+// const asyncHandler = (func) =>  async() => {}
