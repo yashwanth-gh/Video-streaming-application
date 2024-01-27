@@ -15,7 +15,7 @@ const asyncHandler = (requestHandler) => {
      * @param {object} res - The response object.
      * @param {function} next - The next middleware function.
      */
-    return (req, res, next) => {    //FIXME:sir did'nt put return statement if wrong fix the notes
+    return (req, res, next) => {
         Promise.resolve(requestHandler(req, res, next))
             .catch(err => next(err));
     };
