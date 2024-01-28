@@ -5,7 +5,7 @@ import { app } from "./app.js";
 
 //* --Making environment variables available as soon as project loads
 dotenv.config({
-  path: "./env",
+  path: "./.env",
 });
 
 //* --Connecting Datbase with project
