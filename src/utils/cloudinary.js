@@ -26,6 +26,8 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 };
 
+export default uploadOnCloudinary;
+
 
 /* This code defines an asynchronous function called `uploadOnCloudinary` that takes a `localFilePath` as a parameter. 
 Inside the function, it first checks if the `localFilePath` is truthy. If it is not, it returns `null` and exits the function.
