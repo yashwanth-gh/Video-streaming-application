@@ -3,6 +3,7 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async (userId) => {
   /* This code is a function called generateAccessAndRefreshToken that takes a userId as a parameter.
@@ -155,7 +156,6 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
-  
   /*
   1. Define a function named "logout" that takes in two parameters: "req" and "res".
   2. Inside the function, use the "await" keyword to wait for the completion of the "User.findByIdAndUpdate" function.
@@ -182,16 +182,17 @@ const logout = asyncHandler(async (req, res) => {
     req.user._id,
     {
       $unset: {
-        refreshToken: 1 // this removes the field from document
-    }
+        refreshToken: 1, // this removes the field from document
+      },
     },
     {
       new: true,
     }
   );
 
-  console.log("data" , data)
-  console.log("rf" , data.refreshToken)
+  // console.log("data" , data)
+  // console.log("rf" , data.refreshToken)
+
   /*   This block of code is written in JavaScript and is using the `await` keyword to wait for the `User.findByIdAndUpdate` function to complete before moving on to the next line of code. 
 The `User.findByIdAndUpdate` function is used to find a user by their ID (`req.user._id`) and update their information. In this case, it is updating the `refreshToken` field of the user object and setting it to `undefined`.
 The second argument of the function is an object that specifies the update to be made. In this case, it is using the `$set` operator to set the `refreshToken` field to `undefined`.
@@ -209,4 +210,52 @@ Overall, this code is updating the `refreshToken` field of a user object to `und
     .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "User logged out succesfully!"));
 });
-export { registerUser, loginUser, logout };
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const incommingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+
+  if (!incommingRefreshToken) {
+    throw new ApiError(401, "Unauthorized request");
+  }
+
+  const decodedRefreshToken = jwt.verify(
+    incommingRefreshToken,
+    process.env.REFRESH_TOKEN_SECRET
+  );
+
+  const user = await User.findById(decodedRefreshToken?._id);
+
+  if (!user) {
+    throw new ApiError(401, "Invalid refresh token");
+  }
+
+  if (incommingRefreshToken !== user.refreshToken) {
+    throw new ApiError("Refresh token is expired or invalid");
+  }
+
+  const { accessToken, refreshToken:newRefreshToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", newRefreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          accessToken,
+          refreshToken: newRefreshToken,
+        },
+        "Access token refreshed"
+      )
+    );
+});
+export { registerUser, loginUser, logout, refreshAccessToken };
