@@ -17,8 +17,8 @@ const generateAccessAndRefreshToken = async (userId) => {
   const refreshToken = await user.generateRefreshToken();
   user.refreshToken = refreshToken;
 
-  console.log("at", accessToken);
-  console.log("rt", refreshToken);
+  // console.log("at", accessToken);
+  // console.log("rt", refreshToken);
   await user.save({ validateBeforeSave: false });
 
   return { accessToken, refreshToken };
@@ -178,17 +178,20 @@ const logout = asyncHandler(async (req, res) => {
   7. End the function. 
   */
 
-  await User.findByIdAndUpdate(
+  const data = await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: {
-        refreshToken: undefined,
-      },
+      $unset: {
+        refreshToken: 1 // this removes the field from document
+    }
     },
     {
       new: true,
     }
   );
+
+  console.log("data" , data)
+  console.log("rf" , data.refreshToken)
   /*   This block of code is written in JavaScript and is using the `await` keyword to wait for the `User.findByIdAndUpdate` function to complete before moving on to the next line of code. 
 The `User.findByIdAndUpdate` function is used to find a user by their ID (`req.user._id`) and update their information. In this case, it is updating the `refreshToken` field of the user object and setting it to `undefined`.
 The second argument of the function is an object that specifies the update to be made. In this case, it is using the `$set` operator to set the `refreshToken` field to `undefined`.
