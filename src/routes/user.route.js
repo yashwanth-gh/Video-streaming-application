@@ -5,11 +5,14 @@ import {
   logout,
   refreshAccessToken,
   registerUser,
+  updateAccountDetails,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
+  changePasswordValidation,
   loginValidation,
   registerValidation,
+  updateAccountDetailsValidation,
 } from "../middlewares/dataValidation.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -35,8 +38,12 @@ router.route("/login").post(loginValidation, loginUser);
 //! ***** SECURED ROUTES ONLY ACCESS IF USER HAS LOGGED IN *****
 
 router.route("/logout").post(verifyJWT, logout);
-router.route("/refresh-token").post( refreshAccessToken);
-router.route("/change-password").post( verifyJWT,changeCurrentPassword);
-
+router.route("/refresh-token").post(refreshAccessToken);
+router
+  .route("/change-password")
+  .post([changePasswordValidation, verifyJWT], changeCurrentPassword);
+router
+  .route("/update-account")
+  .post([updateAccountDetailsValidation, verifyJWT], updateAccountDetails);
 
 export default router;

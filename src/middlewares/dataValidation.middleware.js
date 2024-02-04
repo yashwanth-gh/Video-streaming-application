@@ -32,7 +32,7 @@ const loginValidation = asyncHandler(async (req, res, next) => {
     body("password").trim().notEmpty().withMessage("Password is required"),
   ];
 
-//* --This is based on asuumption that either username or password is provided by frontend
+  //* --This is based on asuumption that either username or password is provided by frontend
   if (req.body.username) {
     //* --If only username is sent
     rules.push(
@@ -62,4 +62,47 @@ const loginValidation = asyncHandler(async (req, res, next) => {
   }
 });
 
-export { registerValidation, loginValidation };
+const changePasswordValidation = asyncHandler(async (req, res, next) => {
+  const rules = [
+    body("newPassword").trim().notEmpty().withMessage("Password is required"),
+    body("newPassword")
+      .trim()
+      .isLength({ min: 8 })
+      .withMessage("Password must be at least 8 characters long")
+      .matches(/^(?=.*[A-Za-z])(?=.*\d).*$/)
+      .withMessage("Password must contain atleast one alphabet and one digit"),
+  ];
+  await Promise.all(rules.map((rule) => rule.run(req)));
+  let errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    console.log(errors.array().map((err) => err.msg));
+    throw new ApiError(400, "change Password Validation failed",errors.array());
+  } else {
+    next();
+  }
+});
+
+const updateAccountDetailsValidation = asyncHandler(async (req, res, next) => {
+  const rules = [
+    body("fullName").trim().notEmpty().withMessage("Full Name is required"),
+    body("email").isEmail().withMessage("Email is invalid"),
+  ];
+
+  await Promise.all(rules.map((rule) => rule.run(req)));
+  let errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    console.log(errors.array().map((err) => err.msg));
+    throw new ApiError(400, "update Account Details Validation failed");
+  } else {
+    next();
+  }
+});
+
+export {
+  registerValidation,
+  loginValidation,
+  changePasswordValidation,
+  updateAccountDetailsValidation,
+};
