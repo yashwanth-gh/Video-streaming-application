@@ -10,7 +10,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
  * @param {Function} next - Express next function.
  * @throws {ApiError} - Throws an error if token is missing or invalid.
  */
-export const verifyJWT = asyncHandler(async(req,res,next)=>{
+export const verifyJWT = asyncHandler(async(req, _ ,next)=>{
     /**
      * Get the JWT token from the request.
      * @type {string}
