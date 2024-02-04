@@ -283,30 +283,86 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     );
 });
 
-const updateAccountDetails = asyncHandler(async (req,res)=>{
-  // it is recommended to make a seperate endpoint and a controller if you want to update 
+const updateAccountDetails = asyncHandler(async (req, res) => {
+  // it is recommended to make a seperate endpoint and a controller if you want to update
   // user files like avatar and cover picture it is a better approach
-  
-  const {fullName,email} = req.body;
+
+  const { fullName, email } = req.body;
 
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
-      $set : {
+      $set: {
         fullName,
-        email
-      }
-    },{
-      new:true
+        email,
+      },
+    },
+    {
+      new: true,
     }
-  )
+  ).select("-password");
 
-    return res
+  return res
     .status(200)
-    .json(new ApiResponse(200,user,"Acount details updated successfully!"))
+    .json(new ApiResponse(200, user, "Acount details updated successfully!"));
+});
 
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
 
-})
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar file is missing");
+  }
+
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+  if (!avatar.url) {
+    throw new ApiError(400, "Error while uploading data");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        avatar: avatar.url,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Avatar updated successfully"));
+});
+
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const coverImageLocalPath = req.file?.path;
+
+  if (!coverImageLocalPath) {
+    throw new ApiError(400, "cover image file is missing");
+  }
+
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+  if (!coverImage.url) {
+    throw new ApiError(400, "Error while uploading data");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        coverImage: coverImage.url,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "cover image updated successfully"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -315,4 +371,6 @@ export {
   changeCurrentPassword,
   getCurrentUser,
   updateAccountDetails,
+  updateUserAvatar,
+  updateUserCoverImage,
 };
