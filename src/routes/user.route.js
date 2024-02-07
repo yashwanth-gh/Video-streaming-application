@@ -59,4 +59,10 @@ router
   .route("/update-coverpic")
   .post([upload.single("coverImage"), verifyJWT], updateUserCoverImage);
 
+
+  //TODO: Not tested still
+  router
+  .route("/channel:username")
+  .get(getUserChannelProfile);
+
 export default router;

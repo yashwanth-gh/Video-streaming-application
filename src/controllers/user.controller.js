@@ -330,6 +330,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     { new: true }
   ).select("-password");
 
+  //TODO: Make a utility function to delete old avatar from cloudinary
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Avatar updated successfully"));
@@ -363,6 +364,89 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "cover image updated successfully"));
 });
 
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  if (!username?.trim()) {
+    throw new ApiError(400, "Username does not exists");
+  }
+
+  const channel = await User.aggregate([
+    //^ o---> Stage 1
+    //* Find the given username from the User model
+    {
+      $match: {
+        username: username?.toLowerCase(),
+      },
+    },
+    //^ o---> Stage 2
+    //* Bring Subscribers from Subscription model to User model
+    {
+      $lookup: {
+        from: "subscription",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    //^ o---> Stage 3
+    //* Bring Channels that this user subscribed to from Subscription model
+    {
+      $lookup: {
+        from: "subscription",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+    //^ o---> Stage 4
+    //* Add dome more fields like subscriber count, channelsSubscribedTo count...
+    //* $subscribersCount : You can find this by counting size of '$subscribers' field
+    //* $channelsSubscribedTo : You can find this by counting size of '$subscribedTo' field
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers",
+        },
+        channelsSubscribedTo: {
+          $size: "$subscribedTo",
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    //^ o---> Stage 5
+    //* $project to only select which fields you want
+    {
+      $project: {
+        fullName: 1,
+        username: 1,
+        subscribersCount: 1,
+        channelsSubscribedTo: 1,
+        isSubscribed: 1,
+        avatar: 1,
+        coverImage: 1,
+        email: 1,
+      },
+    },
+  ]);
+
+  if (!channel?.length) {
+    new ApiError(404, "Channel Does not Exists!");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, channel[0], "User channel fetched successfully")
+    );
+});
+
 export {
   registerUser,
   loginUser,
@@ -373,4 +457,5 @@ export {
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
+  getUserChannelProfile,
 };
